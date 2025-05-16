@@ -1,42 +1,53 @@
 import React, { useState } from 'react';
 import {
   Container,
-  Typography,
-  Box,
-  Button,
-  CircularProgress,
+  Grid,
   Paper,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
   useTheme
 } from '@mui/material';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import type { ConfigData } from './electron';
-import McpServerList from './components/McpServerList';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import CursorIcon from '@mui/icons-material/Mouse';
+import type { ConfigData, McpServers, MenuItem } from './shared/types';
+import CursorPage from './pages/cursor/CursorPage';
+import ClaudePage from './pages/claude/ClaudePage';
 
-type McpServers = {
-  [key: string]: {
-    command: string;
-    args: string[];
+const MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'cursor',
+    label: 'Cursor',
+    icon: CursorIcon,
+    description: 'Cursor IDE integration'
+  },
+  {
+    id: 'claude',
+    label: 'Claude',
+    icon: SmartToyIcon,
+    description: 'Claude AI assistant'
   }
-}
+];
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [config, setConfig] = useState<ConfigData | null>(null);
-  const [mcpServers, setMcpServers] = useState<McpServers | null>(null);
+  const [mcpConfig, setMcpConfig] = useState<{ [key: string]: ConfigData }>({});
+  const [selectedMenu, setSelectedMenu] = useState<string>(MENU_ITEMS[0].id);
   const theme = useTheme();
 
-  const handleFileSelect = async () => {
+  const handleFileSelect = async (tool: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const config = await window.electron.openFileDialog();
-      console.log('Selected file:', config);
+      const config = await window.electron.openFileDialog(tool);
+      console.log('Selected file:', config, ' for tool:', tool);
 
       if (config) {
-        setConfig(config);
-        setMcpServers(config.content.mcpServers as McpServers);
+        setMcpConfig(prev => ({ ...prev, [tool]: config }));
       }
     } catch (err) {
       console.error('Error:', err);
@@ -46,85 +57,88 @@ function App() {
     }
   };
 
+  const renderContent = () => {
+    const mcpServers = mcpConfig[selectedMenu]?.content?.mcpServers;
+    switch (selectedMenu) {
+      case 'cursor':
+        return (
+          <CursorPage
+            loading={loading}
+            error={error}
+            config={mcpConfig[selectedMenu]}
+            mcpServers={mcpServers}
+            onFileSelect={() => handleFileSelect(selectedMenu)}
+          />
+        );
+      case 'claude':
+        return (
+          <ClaudePage
+            loading={loading}
+            error={error}
+            config={mcpConfig[selectedMenu]}
+            mcpServers={mcpServers}
+            onFileSelect={() => handleFileSelect(selectedMenu)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Container 
       maxWidth="lg" 
       sx={{
         px: { xs: 2, sm: 3 },
-        overflow: 'hidden'
+        overflow: 'hidden',
+        height: '100vh'
       }}
     >
-      <Box sx={{ 
-        mt: 4, 
-        mb: 6,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        width: '100%'
-      }}>
-        <Typography 
-          variant="h3" 
-          gutterBottom 
-          sx={{ 
-            fontWeight: 'bold',
-            color: theme.palette.primary.main,
-            mb: 4
-          }}
-        >
-          MCP Studio
-        </Typography>
-
-        <Button
-          variant="contained"
-          onClick={handleFileSelect}
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <UploadFileIcon />}
-          sx={{ 
-            mb: 4,
-            py: 1.5,
-            px: 4,
-            borderRadius: 2,
-            textTransform: 'none',
-            fontSize: '1.1rem'
-          }}
-        >
-          {loading ? 'Loading...' : 'Select Configuration File'}
-        </Button>
-
-        {config && (
-          <Paper 
-            sx={{ 
-              p: 2, 
-              mb: 4,
-              width: '100%',
-              bgcolor: theme.palette.grey[50],
-              borderRadius: 2
-            }}
-          >
-            <Typography variant="body1" color="textSecondary">
-              Selected file: <strong>{config.path}</strong>
-            </Typography>
+      <Grid container spacing={2} sx={{ height: 'calc(100% - 32px)', mt: 2 }}>
+        {/* Left Menu Panel */}
+        <Grid item xs={3}>
+          <Paper sx={{ height: '100%', p: 2 }}>
+            <List>
+              {MENU_ITEMS.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  <ListItem 
+                    button 
+                    selected={selectedMenu === item.id}
+                    onClick={() => setSelectedMenu(item.id)}
+                    sx={{
+                      borderRadius: 1,
+                      mb: 0.5,
+                      '&.Mui-selected': {
+                        backgroundColor: theme.palette.primary.light,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.light,
+                        }
+                      }
+                    }}
+                  >
+                    <ListItemIcon>
+                      <item.icon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.label}
+                      secondary={item.description}
+                      primaryTypographyProps={{
+                        fontWeight: selectedMenu === item.id ? 'bold' : 'normal'
+                      }}
+                    />
+                  </ListItem>
+                  {index < MENU_ITEMS.length - 1 && <Divider sx={{ my: 1 }} />}
+                </React.Fragment>
+              ))}
+            </List>
           </Paper>
-        )}
+        </Grid>
 
-        {mcpServers && <McpServerList servers={mcpServers} />}
-
-        {error && (
-          <Paper 
-            sx={{ 
-              p: 3,
-              mt: 2,
-              width: '100%',
-              bgcolor: theme.palette.error.light,
-              borderRadius: 2
-            }}
-          >
-            <Typography color="error" variant="body1">
-              {error}
-            </Typography>
-          </Paper>
-        )}
-      </Box>
+        {/* Right Content Panel */}
+        <Grid item xs={9}>
+          {renderContent()}
+        </Grid>
+      </Grid>
     </Container>
   );
 }

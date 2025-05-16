@@ -64,7 +64,7 @@ async function readJsonFile(filePath: string) {
 }
 
 // IPC handlers
-ipcMain.handle('open-file-dialog', async () => {
+ipcMain.handle('open-file-dialog', async (_, tool: string) => {
   try {
     const result = await dialog.showOpenDialog({
       properties: ['openFile'],
@@ -84,7 +84,7 @@ ipcMain.handle('open-file-dialog', async () => {
       path: filePath,
       content: jsonContent
     };
-    store.set('lastConfig', config);
+    store.set(`toolConfig_${tool}`, config);
 
     return config;
   } catch (error) {
@@ -95,5 +95,5 @@ ipcMain.handle('open-file-dialog', async () => {
 
 // Get stored config
 ipcMain.handle('get-stored-config', () => {
-  return store.get('lastConfig');
+  return store.get('toolConfig');
 });

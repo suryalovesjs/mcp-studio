@@ -1,0 +1,51 @@
+{
+  "name": "mcp-studio",
+  "version": "1.0.0",
+  "description": "Desktop application to manage MCP server integrations from Claude Desktop",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production electron .",
+    "dev": "cross-env NODE_ENV=development concurrently \"tsc -w\" \"vite\" \"electron .\"",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/electron": "^1.6.10",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@typescript-eslint/eslint-plugin": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.12.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.11",
+    "@mui/material": "^5.15.11",
+    "electron-store": "^8.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "build": {
+    "appId": "com.mcpstudio.app",
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*"
+    ]
+  }
+}

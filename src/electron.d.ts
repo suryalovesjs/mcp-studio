@@ -3,6 +3,7 @@ interface ConfigData {
   content: Record<string, unknown>;
 }
 
+// We need to export this interface so it can be imported in preload.ts
 export interface ElectronAPI {
   openFileDialog: () => Promise<ConfigData | null>;
   getStoredConfig: () => Promise<ConfigData | null>;

@@ -1,14 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
-
-export type ElectronAPI = {
-  openFileDialog: () => Promise<string | null>;
-};
+import type { ElectronAPI } from './electron.d';
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld(
   'electron',
   {
-    openFileDialog: () => ipcRenderer.invoke('open-file-dialog')
+    openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
+    getStoredConfig: () => ipcRenderer.invoke('get-stored-config')
   } as ElectronAPI
 ); 

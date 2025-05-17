@@ -1,6 +1,6 @@
 # MCP Studio
 
-A desktop application to manage MCP servers and REST API integrations.
+A desktop application to manage MCP servers
 
 ## Prerequisites
 
@@ -40,5 +40,4 @@ pnpm build
 ## Features
 
 - Connect to multiple MCP servers
-- Add and manage REST API integrations
 - Cross-platform support (macOS, Windows, Linux) 

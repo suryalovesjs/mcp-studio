@@ -1,5 +1,13 @@
 import type { SvgIconComponent } from '@mui/icons-material';
 
+
+export type Profile = {
+  id: string;
+  name: string;
+  description: string;
+  icon: SvgIconComponent;
+}
+
 export type McpServers = {
   [key: string]: {
     command: string;

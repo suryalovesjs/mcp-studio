@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Desktop application to manage MCP server integrations from Claude Desktop",
   "main": "dist/main.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "start": "cross-env NODE_ENV=production electron .",
     "dev": "cross-env NODE_ENV=development concurrently \"tsc -w\" \"vite\" \"electron .\"",
@@ -33,9 +33,11 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.11",
     "@mui/material": "^5.15.11",
+    "@types/uuid": "^10.0.0",
     "electron-store": "^8.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "uuid": "^11.1.0"
   },
   "packageManager": "pnpm@8.15.4",
   "build": {

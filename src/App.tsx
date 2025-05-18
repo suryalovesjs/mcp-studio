@@ -1,145 +1,146 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  Container,
-  Grid,
+  Box,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  useTheme
+  IconButton,
+  Stack,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import CursorIcon from '@mui/icons-material/Mouse';
-import type { ConfigData, McpServers, MenuItem } from './shared/types';
+import SettingsIcon from '@mui/icons-material/Settings';
+import GridViewIcon from '@mui/icons-material/GridView';
+import type { ConfigData } from './shared/types';
 import CursorPage from './pages/cursor/CursorPage';
 import ClaudePage from './pages/claude/ClaudePage';
+import SettingsPage from './pages/settings/SettingsPage';
+import McpServers from './pages/mcp-servers/McpServers';
 
-const MENU_ITEMS: MenuItem[] = [
-  {
-    id: 'cursor',
-    label: 'Cursor',
-    icon: CursorIcon,
-    description: 'Cursor IDE integration'
-  },
-  {
-    id: 'claude',
-    label: 'Claude',
-    icon: SmartToyIcon,
-    description: 'Claude AI assistant'
-  }
-];
+// App logo component
+const AppLogo = () => (
+  <Box
+    component="img"
+    src="/app-icon.png"
+    alt="MCP Toggle"
+    sx={{ width: 40, height: 40, borderRadius: 2 }}
+  />
+);
 
 function App() {
-  const [loading, setLoading] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<{ [key: string]: boolean }>({});
   const [error, setError] = useState<string | null>(null);
   const [mcpConfig, setMcpConfig] = useState<{ [key: string]: ConfigData }>({});
-  const [selectedMenu, setSelectedMenu] = useState<string>(MENU_ITEMS[0].id);
+  const [selectedMenu, setSelectedMenu] = useState<'servers' | 'cursor' | 'claude' | 'settings' | 'theme'>('servers');
   const theme = useTheme();
 
   const handleFileSelect = async (tool: string) => {
     try {
-      setLoading(true);
+      setLoadingStates(prev => ({ ...prev, [tool]: true }));
       setError(null);
-
       const config = await window.electron.openFileDialog(tool);
-      console.log('Selected file:', config, ' for tool:', tool);
-
       if (config) {
-        setMcpConfig(prev => ({ ...prev, [tool]: config }));
+        setMcpConfig(prev => ({ ...prev, [tool]: config as ConfigData }));
       }
     } catch (err) {
       console.error('Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to select file');
     } finally {
-      setLoading(false);
+      setLoadingStates(prev => ({ ...prev, [tool]: false }));
     }
   };
 
+  // Sidebar items
+  const sidebarItems = [
+    { icon: GridViewIcon, label: 'servers', active: selectedMenu === 'servers' },
+    { icon: CursorIcon, label: 'cursor', active: selectedMenu === 'cursor' },
+    { icon: SmartToyIcon, label: 'claude', active: selectedMenu === 'claude' },
+    { icon: SettingsIcon, label: 'settings', active: selectedMenu === 'settings' },
+  ];
+
   const renderContent = () => {
-    const mcpServers = mcpConfig[selectedMenu]?.content?.mcpServers;
     switch (selectedMenu) {
       case 'cursor':
         return (
-          <CursorPage
-            loading={loading}
-            error={error}
-            config={mcpConfig[selectedMenu]}
-            mcpServers={mcpServers}
-            onFileSelect={() => handleFileSelect(selectedMenu)}
-          />
+          <Box sx={{ p: 4 }}>
+            <CursorPage
+              loading={loadingStates.cursor || false}
+              error={error}
+              config={mcpConfig[selectedMenu] || null}
+              mcpServers={mcpConfig[selectedMenu]?.content?.mcpServers || null}
+              onFileSelect={() => handleFileSelect(selectedMenu)}
+            />
+          </Box>
         );
       case 'claude':
         return (
-          <ClaudePage
-            loading={loading}
-            error={error}
-            config={mcpConfig[selectedMenu]}
-            mcpServers={mcpServers}
-            onFileSelect={() => handleFileSelect(selectedMenu)}
-          />
+          <Box sx={{ p: 4 }}>
+            <ClaudePage
+              loading={loadingStates.claude || false}
+              error={error}
+              config={mcpConfig[selectedMenu] || null}
+              mcpServers={mcpConfig[selectedMenu]?.content?.mcpServers || null}
+              onFileSelect={() => handleFileSelect(selectedMenu)}
+            />
+          </Box>
         );
+      case 'settings':
+        return (
+          <Box sx={{ p: 4 }}>
+            <SettingsPage
+              loading={loadingStates}
+              error={error}
+              mcpConfig={mcpConfig}
+              onFileSelect={handleFileSelect}
+            />
+          </Box>
+        );
+      case 'servers':
+        return <McpServers mcpConfig={mcpConfig} />;
       default:
         return null;
     }
   };
 
   return (
-    <Container 
-      maxWidth="lg" 
-      sx={{
-        px: { xs: 2, sm: 3 },
-        overflow: 'hidden',
-        height: '100vh'
-      }}
-    >
-      <Grid container spacing={2} sx={{ height: 'calc(100% - 32px)', mt: 2 }}>
-        {/* Left Menu Panel */}
-        <Grid item xs={3}>
-          <Paper sx={{ height: '100%', p: 2 }}>
-            <List>
-              {MENU_ITEMS.map((item, index) => (
-                <React.Fragment key={item.id}>
-                  <ListItem 
-                    button 
-                    selected={selectedMenu === item.id}
-                    onClick={() => setSelectedMenu(item.id)}
-                    sx={{
-                      borderRadius: 1,
-                      mb: 0.5,
-                      '&.Mui-selected': {
-                        backgroundColor: theme.palette.primary.light,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.light,
-                        }
-                      }
-                    }}
-                  >
-                    <ListItemIcon>
-                      <item.icon />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary={item.label}
-                      secondary={item.description}
-                      primaryTypographyProps={{
-                        fontWeight: selectedMenu === item.id ? 'bold' : 'normal'
-                      }}
-                    />
-                  </ListItem>
-                  {index < MENU_ITEMS.length - 1 && <Divider sx={{ my: 1 }} />}
-                </React.Fragment>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
+    <Box sx={{ display: 'flex', height: '100vh', bgcolor: '#f5f5f7' }}>
+      {/* Sidebar */}
+      <Paper
+        elevation={0}
+        sx={{
+          width: 80,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          py: 3,
+          gap: 4,
+          borderRight: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <AppLogo />
+        <Stack spacing={3}>
+          {sidebarItems.map((item) => (
+            <IconButton
+              key={item.label}
+              onClick={() => setSelectedMenu(item.label as typeof selectedMenu)}
+              sx={{
+                p: 1.5,
+                bgcolor: item.active ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                color: item.active ? theme.palette.primary.main : theme.palette.text.secondary,
+              }}
+            >
+              <item.icon />
+            </IconButton>
+          ))}
+        </Stack>
+      </Paper>
 
-        {/* Right Content Panel */}
-        <Grid item xs={9}>
-          {renderContent()}
-        </Grid>
-      </Grid>
-    </Container>
+      {/* Main content */}
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        {renderContent()}
+      </Box>
+    </Box>
   );
 }
 

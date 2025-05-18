@@ -47,23 +47,6 @@ export default function CursorPage({
         Cursor MCP Integration
       </Typography>
 
-      <Button
-        variant="contained"
-        onClick={onFileSelect}
-        disabled={loading}
-        startIcon={loading ? <CircularProgress size={20} /> : <UploadFileIcon />}
-        sx={{ 
-          mb: 4,
-          py: 1.5,
-          px: 4,
-          borderRadius: 2,
-          textTransform: 'none',
-          fontSize: '1.1rem'
-        }}
-      >
-        {loading ? 'Loading...' : 'Select Configuration File'}
-      </Button>
-
       {config && (
         <Paper 
           sx={{ 

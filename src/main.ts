@@ -1,14 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import Store from 'electron-store';
 import fs from 'node:fs';
+import Store from 'electron-store';
+// import { store } from './main/store';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const store = new Store();
-
+const store = new Store(); 
 const isDevelopment = process.env.NODE_ENV === 'development';
-console.log('Environment:', process.env.NODE_ENV);
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -21,17 +18,13 @@ const createWindow = () => {
     },
   });
 
-  console.log('isDevelopment', isDevelopment);
   // In development, load from Vite dev server
   if (isDevelopment) {
-    console.log('Loading from development server...');
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    console.log('Loading from production build...');
     // In production, load from the dist directory
     const indexPath = path.join(process.cwd(), 'dist', 'index.html');
-    console.log('Loading production build from:', indexPath);
     mainWindow.loadFile(indexPath);
   }
 };
@@ -71,7 +64,6 @@ ipcMain.handle('open-file-dialog', async (_, tool: string) => {
       filters: [{ name: 'JSON', extensions: ['json'] }],
     });
     
-    console.log('Dialog result:', result);
     if (result.canceled) {
       return null;
     }
